@@ -54,6 +54,12 @@ def check_game_over(screen, snake, game_state):
             snake.head_position[1] < 0):
         game_state['game_over'] = True
 
+    head_position = snake.head_position
+    for block in snake.body_blocks:
+        block_position = [block[0], block[1]]
+        if(head_position == block_position):
+            game_state['game_over'] = True
+
 
 def game_loop(screen, game_state):
     food_blocks = []
@@ -62,11 +68,10 @@ def game_loop(screen, game_state):
         handle_events(game_state, snake)
         snake.move()
         if snake.direction:
-
             food_blocks = snake.eat_food(food_blocks)
         check_game_over(screen, snake, game_state)
         paint_screen(screen, snake, food_blocks)
-        game_state['clock'].tick(20)
+        game_state['clock'].tick(60)
 
 
 if __name__ == '__main__':
