@@ -45,7 +45,6 @@ class Snake:
                 elif(self.direction == 'down'):
                     self.head_position[1] += BLOCK_DEMENSIONS
                 self.update_blocks()
-            # print(self.direction)
             self.draw_delay = 0
             self.change_stop = False
         else:
@@ -56,44 +55,25 @@ class Snake:
         block[1] = position[1]
 
     def update_blocks(self):
-        print('start')
-        print(self.head_block)
-        print(self.body_blocks)
-        print(self.trail_blocks)
-        print('\n')
         # move head
         next_trail_position = [self.head_block[0], self.head_block[1]]
         next_position = [self.head_block[0], self.head_block[1]]
-        # print('head')
-        # print(next_position)
         self.update_block_position(self.head_position, self.head_block)
-        # print(self.head_block)
 
         # move body
-        # print('blocks')
         if(self.body_blocks):
             block = self.body_blocks[-1]
             next_trail_position = [block[0], block[1]]
         for block in self.body_blocks:
             previous_position = [block[0], block[1]]
-            # print(block)
             self.update_block_position(next_position, block)
-            # print(block)
             next_position = previous_position
-        # print('\n')
 
-        # print('tail next {}'.format(next_position))
+        # move trail blocks
         for block in self.trail_blocks:
             previous_position = [block[0], block[1]]
-            # print(block)
             self.update_block_position(next_trail_position, block)
-            # print(block)
             next_trail_position = previous_position
-        # print('\n')
-        print(self.head_block)
-        print(self.body_blocks)
-        print(self.trail_blocks)
-        print('end\n')
 
     def change_direction(self, event):
         if event.type == pygame.KEYDOWN:
@@ -126,39 +106,33 @@ class Snake:
                     self.add_body_block()
                 else:
                     remaining_food.append(food)
-            while len(remaining_food) < 1:
-                remaining_food.append(Food(BLUE, self.screen, self))
+            while len(remaining_food) < 10:
+                remaining_food.append(
+                    Food(BLUE, self.screen, self, remaining_food))
         return remaining_food
 
     def add_body_block(self):
         self.body_blocks.append(self.trail_blocks[0].copy())
-        # print(len(self.body_blocks))
         for i in range(len(self.trail_blocks) - 1):
             self.trail_blocks[i] = self.trail_blocks[i+1].copy()
         self.trail_blocks[-1] = self.trail_blocks[-2].copy()
-        # print(len(self.trail_blocks))
-        # print(self.trail_blocks)
 
 
 class Food:
-    def __init__(self, color, screen, snake, position=None):
+    def __init__(self, color, screen, snake, other_food):
         self.color = color
         self.screen = screen
-        if position:
-            self.position = position
-        else:
-            self.random_placement(snake)
-        # print('new food')
+        self.random_placement(snake, other_food)
 
     def draw(self):
         pygame.draw.rect(self.screen, self.color, self.position)
 
-    def random_placement(self, snake):
-        x = 60
+    def random_placement(self, snake, other_food):
+        x = randint(0, self.screen.get_width()-BLOCK_DEMENSIONS)
         x = x - x % BLOCK_DEMENSIONS
-        y = int(self.screen.get_height()/2)
+        y = randint(0, self.screen.get_height()-BLOCK_DEMENSIONS)
         y = y - y % BLOCK_DEMENSIONS
-        while self.position_in_snake(snake, [x, y]):
+        while self.position_in_snake_or_food(snake, other_food, [x, y]):
             x = randint(0, self.screen.get_width())
             x = x - x % BLOCK_DEMENSIONS
             y = randint(0, self.screen.get_height())
@@ -166,6 +140,17 @@ class Food:
 
         self.position = [x, y, BLOCK_DEMENSIONS, BLOCK_DEMENSIONS]
 
-    def position_in_snake(self, snake, position):
+    def position_in_snake_or_food(self, snake, other_food, position):
+        head_position = [snake.head_block[0], snake.head_block[1]]
+        if(position == head_position):
+            return True
+        for block in snake.body_blocks:
+            block_position = [block[0], block[1]]
+            if(position == block_position):
+                return True
+        for food in other_food:
+            block_position = [food.position[0], food.position[1]]
+            if(position == block_position):
+                return True
 
         return False
