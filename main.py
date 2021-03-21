@@ -38,30 +38,35 @@ def handle_events(game_state, snake):
             snake.change_direction(event)
 
 
-def paint_screen(screen, snake):
+def paint_screen(screen, snake, food_blocks):
     screen.fill(BLACK)
     snake.draw()
+    for food in food_blocks:
+        food.draw()
     pygame.display.flip()
 
 
 def check_game_over(screen, snake, game_state):
-    if(snake.head_position[0] > screen.get_width() - 10 or
+    if(snake.head_position[0] > screen.get_width() - actors.BLOCK_DEMENSIONS or
             snake.head_position[0] < 0):
         game_state['game_over'] = True
-    elif(snake.head_position[1] > screen.get_height() - 10 or
+    elif(snake.head_position[1] > screen.get_height() - actors.BLOCK_DEMENSIONS or
             snake.head_position[1] < 0):
         game_state['game_over'] = True
 
 
 def game_loop(screen, game_state):
-    food = []
+    food_blocks = []
     snake = actors.Snake(WHITE, screen)
     while not game_state['game_over']:
         handle_events(game_state, snake)
         snake.move()
+        if snake.direction:
+
+            food_blocks = snake.eat_food(food_blocks)
         check_game_over(screen, snake, game_state)
-        paint_screen(screen, snake)
-        game_state['clock'].tick(60)
+        paint_screen(screen, snake, food_blocks)
+        game_state['clock'].tick(20)
 
 
 if __name__ == '__main__':
